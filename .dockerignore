@@ -1,0 +1,12 @@
+# Keep the image small and never bake a database or secrets into it.
+data/
+docs/
+node_modules/
+.git/
+*.md
+!README.md
+fly.toml
+*.zip
+npm-debug.log
+.env
+.env.*

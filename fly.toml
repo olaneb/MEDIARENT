@@ -1,0 +1,50 @@
+# Fly.io config for MediaRent.  Docs: https://fly.io/docs/reference/configuration/
+# 1. Change `app` to a globally-unique name (or let `fly launch --no-deploy --copy-config` ask you).
+# 2. Pick the region nearest your users: `fly platform regions`  (Johannesburg `jnb` is the closest to Nigeria at the time of writing).
+app = "medirent-portal"
+primary_region = "jnb"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  PORT = "8080"
+  MEDIRENT_DATA_DIR = "/data"
+  NODE_ENV = "production"
+  # SEED_DEMO_DATA = "1"   # uncomment for a DEMO app only: loads sample data the first time the volume is empty
+
+# Persistent volume holding the SQLite database and automatic backups.
+# Create it BEFORE the first deploy:  fly volumes create medirent_data --size 1 --region jnb
+[mounts]
+  source = "medirent_data"
+  destination = "/data"
+  initial_size = "1gb"
+  snapshot_retention = 14
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  # SQLite lives on ONE volume, so run exactly ONE machine and keep it running (sessions and the DB stay consistent).
+  auto_stop_machines = "off"
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [http_service.concurrency]
+    type = "requests"
+    soft_limit = 200
+    hard_limit = 250
+
+  [[http_service.checks]]
+    grace_period = "15s"
+    interval = "30s"
+    method = "GET"
+    path = "/api/health"
+    timeout = "5s"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"
+
+# Give Node time to finish requests and close the database on deploys/restarts.
+kill_signal = "SIGTERM"
+kill_timeout = "15s"
