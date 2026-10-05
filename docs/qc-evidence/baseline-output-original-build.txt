@@ -1,0 +1,23 @@
+Negative consumable qty accepted (stock 10 -> ?)     status 201, stock now 15  => BUG (free stock inflation)
+Invoice generation with bad data                     status 500 {"error":"Journal entry not balanced: debit 11500 != credit 21500"}; invoices in DB=1, AR debits=0 => BUG (orphan invoice, no GL, no transaction)
+Overlapping booking of same unit accepted            status 201 => BUG (double-booking)
+Return date before start date accepted               status 201 => BUG
+Double checkout of same item accepted                status 200 => BUG
+Double check-in (rewrites damage charge) accepted    status 200 => BUG
+Invoice line total (net)                             7069000
+VAT charged                                          360000  (7.5% of ALL lines would be 530175.00) => BUG: VAT under-charged
+Crew line on invoice                                 MISSING => BUG (crew never billed)
+WHT expected recorded                                480000
+Second invoice for same booking allowed              status 201 => BUG (double billing)
+Negative payment accepted                            status 201 => BUG
+Overpayment accepted                                 status 201 => BUG
+Cash payment posted to Cash(1000)?                   Cash dr=0 Bank dr=99999499 => BUG (cash booked to bank)
+Balance sheet as_of 2020 (should be empty)           assets=14854000 => BUG (date filter ignored)
+Balance sheet balances (A = L + E)?                  A=14854000 L+E=720000 => BUG (no current-year earnings)
+Cancel an already-RETURNED booking accepted          status 200 => BUG
+Duplicate email / 1-char password on create user     status 500 {"error":"UNIQUE constraint failed: users.email"}
+Suspended user can still call API with old session   status 200 => BUG
+Change password w/o current password                 status 200 => BUG (no current-password check)
+Same admin raised + approved L1 + approved L2        200/200 => BUG (maker-checker bypass)
+Security headers (CSP/XFO/nosniff)                   n n n
+15 wrong logins in a row - any lockout/429?          last status 401 => BUG (no throttling)
